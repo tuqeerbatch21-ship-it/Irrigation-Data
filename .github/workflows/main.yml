@@ -18,30 +18,25 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Setup Gradle 8.5
-        uses: gradle/actions/setup-gradle@v3
-        with:
-          gradle-version: '8.5'
-
-      - name: Prepare AndroidX and Manifest Config
+      - name: Configure Project and Build Debug APK
         run: |
           if [ -d "IrrigationPortalApp" ]; then
             cd IrrigationPortalApp
           fi
+          echo "=== Checking uploaded files ==="
+          find . -maxdepth 6 -not -path '*/.*'
+
           echo "org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8" > gradle.properties
           echo "android.useAndroidX=true" >> gradle.properties
           echo "android.enableJetifier=true" >> gradle.properties
-          sed -i 's/package="com.irrigation.portal"//g' app/src/main/AndroidManifest.xml
 
-      - name: Build Debug APK
-        run: |
-          if [ -d "IrrigationPortalApp" ]; then
-            cd IrrigationPortalApp
+          if [ -f "app/src/main/AndroidManifest.xml" ]; then
+            sed -i 's/package="com.irrigation.portal"//g' app/src/main/AndroidManifest.xml
           fi
-          gradle assembleDebug --stacktrace
+
+          curl -sL https://services.gradle.org/distributions/gradle-8.5-bin.zip -o gradle.zip
+          unzip -q gradle.zip
+          ./gradle-8.5/bin/gradle assembleDebug --stacktrace
 
       - name: Upload Compiled APK
         uses: actions/upload-artifact@v4
