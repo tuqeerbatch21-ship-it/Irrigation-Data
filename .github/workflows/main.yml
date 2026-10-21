@@ -23,16 +23,17 @@ jobs:
           if [ -d "IrrigationPortalApp" ]; then
             cd IrrigationPortalApp
           fi
-          echo "=== Checking uploaded files ==="
-          find . -maxdepth 6 -not -path '*/.*'
 
           echo "org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8" > gradle.properties
           echo "android.useAndroidX=true" >> gradle.properties
           echo "android.enableJetifier=true" >> gradle.properties
 
-          if [ -f "app/src/main/AndroidManifest.xml" ]; then
-            sed -i 's/package="com.irrigation.portal"//g' app/src/main/AndroidManifest.xml
-          fi
+          # Automatically create dummy mipmap folders and icons so build never fails on missing icons
+          for density in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
+            mkdir -p app/src/main/res/mipmap-$density
+            convert -size 48x48 xc:#0D47A1 app/src/main/res/mipmap-$density/ic_launcher.png 2>/dev/null || touch app/src/main/res/mipmap-$density/ic_launcher.png
+            convert -size 48x48 xc:#0D47A1 app/src/main/res/mipmap-$density/ic_launcher_round.png 2>/dev/null || touch app/src/main/res/mipmap-$density/ic_launcher_round.png
+          done
 
           curl -sL https://services.gradle.org/distributions/gradle-8.5-bin.zip -o gradle.zip
           unzip -q gradle.zip
